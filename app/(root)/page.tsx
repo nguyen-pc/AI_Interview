@@ -1,11 +1,25 @@
 import InterviewCard from "@/components/InterviewCard";
 import { Button } from "@/components/ui/button";
 import { dummyInterviews } from "@/constants";
+import {
+  getCurrentUser,
+  getInterviewByUserId,
+  getLatestInterviews,
+} from "@/lib/actions/auth.action";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const HomePage = () => {
+const HomePage = async () => {
+  const user = await getCurrentUser();
+
+  const [userInterviews, latestInterview] = await Promise.all([
+    await getInterviewByUserId(user?.id!),
+    await getLatestInterviews({ userId: user?.id! }),
+  ]);
+
+  const hasPastInterviews = userInterviews?.length > 0;
+  const hasUpcomingInterviews = latestInterview?.length > 0
   return (
     <>
       <section className="card-cta">
@@ -30,17 +44,31 @@ const HomePage = () => {
       <section className="flex flex-col gap-6 mt-8">
         <h2>Your Interview</h2>
         <div className="interviews-section">
-          {dummyInterviews.map((interview) => (
+          {hasPastInterviews ? (
+            userInterviews?.map((interview) => (
+              <InterviewCard {...interview} key={interview.id} />
+            ))
+          ) : (
+            <p>You have not take ay interviews yet</p>
+          )}
+          {/* {dummyInterviews.map((interview) => (
             <InterviewCard {...interview} key={interview.id} />
-          ))}
+          ))} */}
         </div>
       </section>
       <section className="flex flex-col gap-6 mt-8">
         <h2>Take an Interview</h2>
         <div className="interviews-section">
-          {dummyInterviews.map((interview) => (
+        {hasUpcomingInterviews ? (
+            latestInterview?.map((interview) => (
+              <InterviewCard {...interview} key={interview.id} />
+            ))
+          ) : (
+            <p>There are no interview available</p>
+          )}
+          {/* {dummyInterviews.map((interview) => (
             <InterviewCard {...interview} key={interview.id} />
-          ))}
+          ))} */}
           {/* <p>You have not taken any interview yet</p> */}
         </div>
       </section>
